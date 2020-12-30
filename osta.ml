@@ -18,7 +18,7 @@ let convert_to_html md_path =
   (to_html (of_string (read_whole_file md_path)))
 
 
-let get_html_path (md_path, output_path) =
+let get_html_path md_path output_path =
     output_path ^ Filename.dir_sep ^ (Str.replace_first (Str.regexp ".md") ".html" md_path)
 
 
@@ -29,12 +29,19 @@ let write_to_file(file, message) =
   close_out oc
 
 
+let wrap_with_base_html base_path message = 
+  Str.replace_first (Str.regexp "{content}") message (read_whole_file base_path)
+
+
 let render output_path = 
   printf "Rendering HTML to %s\n" output_path;
   Sys.readdir "."
   |> Array.to_list
   |> List.filter (fun x -> Filename.extension x = ".md")
-  |> List.iter (fun md_path -> write_to_file((get_html_path(md_path, output_path)), (convert_to_html md_path)) );
+  |> List.iter (fun md_path -> write_to_file(
+      (get_html_path md_path output_path), 
+      (wrap_with_base_html "base.html" (convert_to_html md_path))) 
+    );
   print_endline "Rendering complete"
 
 
